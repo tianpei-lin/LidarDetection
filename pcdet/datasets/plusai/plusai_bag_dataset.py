@@ -30,7 +30,7 @@ class UnifyLidar(object):
                                                               lidar_cfg['calib_date'],
                                                               calib_db_path))
         self.buffer_size = 10
-        self.time_diff_thresh = 0.02
+        self.time_diff_thresh = 0.05
         self.frame_buffer = []
         self.data_iter = bag.read_messages(topics=self.lidar_topic_list)
 

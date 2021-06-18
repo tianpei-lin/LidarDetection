@@ -105,8 +105,8 @@ def inference_bag(model, bag_file):
         img_file_name = '{:0>4d}.png'.format(frame_idx)
         cv2.putText(frame, img_file_name, (30, 60), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                     fontScale=0.6, color=(0, 255, 0), thickness=1)
-        cv2.imshow('debug', frame)
-        cv2.waitKey(1)
+        # cv2.imshow('debug', frame)
+        # cv2.waitKey(1)
         # Save video
         if args.save_video:
             video_output.write(frame)

@@ -12,3 +12,5 @@ venv/
 *.zip
 *.bin
 output/
+pcdet/version.py
+tools/log_bag_inference.txt
