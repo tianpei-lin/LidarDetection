@@ -486,7 +486,7 @@ if __name__ == '__main__':
     parser.add_argument('--data_path', help='directory to data path which should contains bag and label')
     parser.add_argument('--lidar_topic', default='/unified/lidar_points')
     parser.add_argument('--odom_topic', default='/navsat/odom')
-    parser.add_argument('--cfg_file', type=str, default='/home/jingsen/workspace/OpenPCDet/tools/cfgs/livox_models/pv_rcnn_multiframe.yaml')
+    parser.add_argument('--cfg_file', type=str, default='/data/tianpei/repo/LidarDetection/tools/cfgs/livox_models/pv_rcnn_multiframe.yaml')
     parser.add_argument('--visualize', action='store_true', default=False, help='visualize the multi-frame point cloud')
     parser.add_argument('--num_workers', default=6, help='num workers to process label data')
     args = parser.parse_args()
