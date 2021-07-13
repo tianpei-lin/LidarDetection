@@ -7,7 +7,6 @@
 
 import glob
 import rosbag
-import fastbag
 import pickle
 import numpy as np
 import sensor_msgs.point_cloud2 as pc2
@@ -101,38 +100,36 @@ class BagMultiframeDatasetUnifyLidar(DatasetTemplate):
         self.max_time_step = 0.15
         self.end_flag = False
         self.model_input = model_input
-
         if str(bag_path).endswith('.bag'):
             self.bag = rosbag.Bag(bag_path, 'r')
-        elif str(bag_path).endswith('.db'):
-            self.bag = fastbag.Reader(bag_path)
+            odom_list = []
+            for topic, msg, _ in self.bag.read_messages(topics=dataset_cfg.BAG_INFO.ODOM_TOPIC):
+                timestamp = msg.header.stamp.to_sec()
+                pos = np.array([msg.pose.pose.position.x,
+                                msg.pose.pose.position.y,
+                                msg.pose.pose.position.z])
+                quat = np.array([msg.pose.pose.orientation.x,
+                                 msg.pose.pose.orientation.y,
+                                 msg.pose.pose.orientation.z,
+                                 msg.pose.pose.orientation.w])
+                odom_list.append((timestamp, (pos, quat)))
+            odom_list = sorted(odom_list, key=lambda x : x[0])
+            self.timestamps = [e[0] for e in odom_list]
+            self.poses = [e[1] for e in odom_list]
+
+            if stack_frame_size > 0:
+                self.stack_frame_size = stack_frame_size
+            elif dataset_cfg.get('STACK_FRAME_SIZE', False):
+                self.stack_frame_size = dataset_cfg.STACK_FRAME_SIZE
+            else:
+                self.stack_frame_size = 1
+            self.base_frame_index = self.stack_frame_size // 2
+            self.frame_list = []
+            self.data_iter = UnifyLidar(dataset_cfg.BAG_INFO, self.bag)
+
+            self.fill_frame_list()
         else:
             raise NotImplementedError
-
-        odom_list = []
-        for topic, msg, _ in self.bag.read_messages(topics=dataset_cfg.BAG_INFO.ODOM_TOPIC):
-            timestamp = msg.header.stamp.to_sec()
-            pos = np.array([msg.pose.pose.position.x,
-                            msg.pose.pose.position.y,
-                            msg.pose.pose.position.z])
-            quat = np.array([msg.pose.pose.orientation.x,
-                             msg.pose.pose.orientation.y,
-                             msg.pose.pose.orientation.z,
-                             msg.pose.pose.orientation.w])
-            odom_list.append((timestamp, (pos, quat)))
-        odom_list = sorted(odom_list, key=lambda x : x[0])
-        self.timestamps = [e[0] for e in odom_list]
-        self.poses = [e[1] for e in odom_list]
-        if stack_frame_size > 0:
-            self.stack_frame_size = stack_frame_size
-        elif dataset_cfg.get('STACK_FRAME_SIZE', False):
-            self.stack_frame_size = dataset_cfg.STACK_FRAME_SIZE
-        else:
-            self.stack_frame_size = 1
-        self.base_frame_index = self.stack_frame_size // 2
-        self.frame_list = []
-        self.data_iter = UnifyLidar(dataset_cfg.BAG_INFO, self.bag)
-        self.fill_frame_list()
 
     def fill_frame_list(self):
         while len(self.frame_list) < self.stack_frame_size:
@@ -210,38 +207,36 @@ class BagMultiframeDataset(DatasetTemplate):
 
         if str(bag_path).endswith('.bag'):
             self.bag = rosbag.Bag(bag_path, 'r')
-        elif str(bag_path).endswith('.db'):
-            self.bag = fastbag.Reader(bag_path)
+            odom_list = []
+            for topic, msg, _ in self.bag.read_messages(topics=dataset_cfg.BAG_INFO.ODOM_TOPIC):
+                timestamp = msg.header.stamp.to_sec()
+                pos = np.array([msg.pose.pose.position.x,
+                                msg.pose.pose.position.y,
+                                msg.pose.pose.position.z])
+                quat = np.array([msg.pose.pose.orientation.x,
+                                 msg.pose.pose.orientation.y,
+                                 msg.pose.pose.orientation.z,
+                                 msg.pose.pose.orientation.w])
+                odom_list.append((timestamp, (pos, quat)))
+            odom_list = sorted(odom_list)
+            self.timestamps = [e[0] for e in odom_list]
+            self.poses = [e[1] for e in odom_list]
+
+            if stack_frame_size > 0:
+                self.stack_frame_size = stack_frame_size
+            elif dataset_cfg.get('STACK_FRAME_SIZE', False):
+                self.stack_frame_size = dataset_cfg.STACK_FRAME_SIZE
+            else:
+                self.stack_frame_size = 1
+            self.base_frame_index = self.stack_frame_size // 2
+            self.frame_list = []
+            self.data_iter = self.bag.read_messages(topics=dataset_cfg.BAG_INFO.UNIFIED_LIDAR_TOPIC)
+            for i in range(self.stack_frame_size):
+                (topic, msg, _) = next(self.data_iter)
+                self.frame_list.append(self.read_lidar_topic(msg))
+            self.end_flag = False
         else:
             raise NotImplementedError
-
-        odom_list = []
-        for topic, msg, _ in self.bag.read_messages(topics=dataset_cfg.BAG_INFO.ODOM_TOPIC):
-            timestamp = msg.header.stamp.to_sec()
-            pos = np.array([msg.pose.pose.position.x,
-                            msg.pose.pose.position.y,
-                            msg.pose.pose.position.z])
-            quat = np.array([msg.pose.pose.orientation.x,
-                             msg.pose.pose.orientation.y,
-                             msg.pose.pose.orientation.z,
-                             msg.pose.pose.orientation.w])
-            odom_list.append((timestamp, (pos, quat)))
-        odom_list = sorted(odom_list)
-        self.timestamps = [e[0] for e in odom_list]
-        self.poses = [e[1] for e in odom_list]
-        if stack_frame_size > 0:
-            self.stack_frame_size = stack_frame_size
-        elif dataset_cfg.get('STACK_FRAME_SIZE', False):
-            self.stack_frame_size = dataset_cfg.STACK_FRAME_SIZE
-        else:
-            self.stack_frame_size = 1
-        self.base_frame_index = self.stack_frame_size // 2
-        self.frame_list = []
-        self.data_iter = self.bag.read_messages(topics=dataset_cfg.BAG_INFO.UNIFIED_LIDAR_TOPIC)
-        for i in range(self.stack_frame_size):
-            (topic, msg, _) = next(self.data_iter)
-            self.frame_list.append(self.read_lidar_topic(msg))
-        self.end_flag = False
 
     def __iter__(self):
         return self

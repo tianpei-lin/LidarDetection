@@ -224,7 +224,7 @@ if __name__ == '__main__':
     else:
         bags = os.listdir(args.bag_file)
         for bag in bags:
-            if bag.endswith('.bag') or bag.endswith('.db'):
+            if bag.endswith('.bag'):
                 bag_files.append(os.path.join(args.bag_file, bag))
 
     # Inference with model
