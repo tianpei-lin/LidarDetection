@@ -26,7 +26,8 @@ class PlusAIMultiframeDataset(DatasetTemplate):
         self.root_split_path = self.root_path
 
         split_dir = self.root_path / 'ImageSets' / (self.split + '.txt')
-        self.sample_id_list = [x.strip() for x in open(split_dir).readlines()] if split_dir.exists() else None
+        self.sample_id_list = [x.strip() for x in open(
+            split_dir).readlines()] if split_dir.exists() else None
 
         # TODO: should read from dataset_cfg
         self.stack_frame_size = 3
@@ -39,7 +40,7 @@ class PlusAIMultiframeDataset(DatasetTemplate):
         if self.logger is not None:
             self.logger.info('Loading PlusAI dataset ...')
         plusai_infos = []
-        
+
         for info_path in self.dataset_cfg.INFO_PATH[mode]:
             info_path = self.root_path / info_path
             if not info_path.exists():
@@ -50,7 +51,8 @@ class PlusAIMultiframeDataset(DatasetTemplate):
         self.plusai_infos.extend(plusai_infos)
 
         if self.logger is not None:
-            self.logger.info('Total samples for PlusAI dataset: %d' % (len(plusai_infos)))
+            self.logger.info(
+                'Total samples for PlusAI dataset: %d' % (len(plusai_infos)))
 
     def set_split(self, split):
         super().__init__(
@@ -64,18 +66,22 @@ class PlusAIMultiframeDataset(DatasetTemplate):
         self.root_split_path = self.root_path
 
         split_dir = self.root_path / 'ImageSets' / (self.split + '.txt')
-        self.sample_id_list = [x.strip() for x in open(split_dir).readlines()] if split_dir.exists() else None
+        print('split dir: ', split_dir)
+        self.sample_id_list = [x.strip() for x in open(
+            split_dir).readlines()] if split_dir.exists() else None
 
     def get_lidar(self, idx):
         lidar_file = self.root_split_path / idx
         assert lidar_file.exists()
-        lidar_data = np.fromfile(str(lidar_file), dtype=np.float32).reshape(-1, 5)
+        lidar_data = np.fromfile(
+            str(lidar_file), dtype=np.float32).reshape(-1, 5)
 
         return lidar_data
 
     def get_label(self, idx):
         [scene_name, _, frame] = idx.split('/')
-        label_file = self.root_split_path / scene_name / 'label' / (frame[:-4] + '.pkl')
+        label_file = self.root_split_path / \
+            scene_name / 'label' / (frame[:-4] + '.pkl')
         try:
             assert label_file.exists()
         except AssertionError:
@@ -94,10 +100,12 @@ class PlusAIMultiframeDataset(DatasetTemplate):
             pc_info = {'num_features': 5, 'lidar_idx': sample_idx}
             info['point_cloud'] = pc_info
 
-            image_info = {'image_idx': sample_idx, 'image_shape': np.array([1920, 1080])}
+            image_info = {'image_idx': sample_idx,
+                          'image_shape': np.array([1920, 1080])}
             info['image'] = image_info
 
-            calib_info = {'P2': np.eye(4), 'R0_rect': np.eye(4), 'Tr_velo_to_cam': np.eye(4)}
+            calib_info = {'P2': np.eye(4), 'R0_rect': np.eye(
+                4), 'Tr_velo_to_cam': np.eye(4)}
             info['calib'] = calib_info
 
             if has_label:
@@ -106,32 +114,48 @@ class PlusAIMultiframeDataset(DatasetTemplate):
 
                 annotations = {}
                 if len(obj_labels) > 0:
-                    annotations['name'] = np.array([label[self.base_frame_idx]['class'] for label in obj_labels])
-                    annotations['truncated'] = np.array([0 for label in obj_labels])
-                    annotations['occluded'] = np.array([0 for label in obj_labels])
-                    annotations['alpha'] = np.array([0 for label in obj_labels])
-                    annotations['bbox'] = np.array([[1, 1, 1, 1] for label in obj_labels])
-                    annotations['dimensions'] = np.array([label[self.base_frame_idx]['size'] for label in obj_labels])  # lwh(lidar) format
-                    annotations['location'] = np.array([label[self.base_frame_idx]['location'] for label in obj_labels])
-                    annotations['rotation_y'] = np.array([label[self.base_frame_idx]['heading'] for label in obj_labels])
-                    annotations['score'] = np.array([1 for label in obj_labels])
-                    annotations['difficulty'] = np.array([0 for label in obj_labels], np.int32)
+                    annotations['name'] = np.array(
+                        [label[self.base_frame_idx]['class'] for label in obj_labels])
+                    annotations['truncated'] = np.array(
+                        [0 for label in obj_labels])
+                    annotations['occluded'] = np.array(
+                        [0 for label in obj_labels])
+                    annotations['alpha'] = np.array(
+                        [0 for label in obj_labels])
+                    annotations['bbox'] = np.array(
+                        [[1, 1, 1, 1] for label in obj_labels])
+                    annotations['dimensions'] = np.array(
+                        [label[self.base_frame_idx]['size'] for label in obj_labels])  # lwh(lidar) format
+                    annotations['location'] = np.array(
+                        [label[self.base_frame_idx]['location'] for label in obj_labels])
+                    annotations['rotation_y'] = np.array(
+                        [label[self.base_frame_idx]['heading'] for label in obj_labels])
+                    annotations['score'] = np.array(
+                        [1 for label in obj_labels])
+                    annotations['difficulty'] = np.array(
+                        [0 for label in obj_labels], np.int32)
 
                     # multi-frame data
-                    annotations['locations'] = np.array([[label['location'] for label in obj] for obj in obj_labels])
-                    annotations['rotations_y'] = np.array([[label['heading'] for label in obj] for obj in obj_labels])
-                    annotations['velocities'] = np.array([[label['velocity'] for label in obj] for obj in obj_labels])
+                    annotations['locations'] = np.array(
+                        [[label['location'] for label in obj] for obj in obj_labels])
+                    annotations['rotations_y'] = np.array(
+                        [[label['heading'] for label in obj] for obj in obj_labels])
+                    annotations['velocities'] = np.array(
+                        [[label['velocity'] for label in obj] for obj in obj_labels])
 
                     # num_objects = len([label['name'] for label in obj_labels if label['name'] != 'DontCare'])
-                    num_objects = len([name for name in annotations['name'] if name != 'DontCare'])
+                    num_objects = len(
+                        [name for name in annotations['name'] if name != 'DontCare'])
                     num_gt = len(annotations['name'])
-                    index = list(range(num_objects)) + [-1] * (num_gt - num_objects)
+                    index = list(range(num_objects)) + \
+                        [-1] * (num_gt - num_objects)
                     annotations['index'] = np.array(index, dtype=np.int32)
 
                     loc = annotations['location'][:num_objects]
-                    dims = annotations['dimensions'][:num_objects] # l, w, h
+                    dims = annotations['dimensions'][:num_objects]  # l, w, h
                     rots = annotations['rotation_y'][:num_objects]
-                    gt_boxes_lidar = np.concatenate([loc, dims, rots[..., np.newaxis]], axis=1)
+                    gt_boxes_lidar = np.concatenate(
+                        [loc, dims, rots[..., np.newaxis]], axis=1)
                     annotations['gt_boxes_lidar'] = gt_boxes_lidar
 
                     # gt_boxes_corner = []
@@ -164,8 +188,10 @@ class PlusAIMultiframeDataset(DatasetTemplate):
         import torch
         from tqdm import tqdm
 
-        database_save_path = Path(self.root_path) / ('gt_database' if split == 'train' else ('gt_database_%s' % split))
-        db_info_save_path = Path(self.root_path) / ('plusai_dbinfos_%s.pkl' % split)
+        database_save_path = Path(
+            self.root_path) / ('gt_database' if split == 'train' else ('gt_database_%s' % split))
+        db_info_save_path = Path(self.root_path) / \
+            ('plusai_dbinfos_%s.pkl' % split)
 
         database_save_path.mkdir(parents=True, exist_ok=True)
         all_db_infos = {}
@@ -189,21 +215,26 @@ class PlusAIMultiframeDataset(DatasetTemplate):
             num_obj = gt_boxes.shape[0]
 
             cur_gt_boxes = gt_boxes.copy()
-            point_indices = np.zeros([num_obj, points.shape[0]], dtype=np.int32)
+            point_indices = np.zeros(
+                [num_obj, points.shape[0]], dtype=np.int32)
             for i in range(self.stack_frame_size):
-                cur_gt_boxes[:, 0:3] = annos['locations'].reshape(num_obj, -1)[:, 3*i:3*(i+1)]
-                cur_gt_boxes[:, -1] = annos['rotations_y'].reshape(num_obj, -1)[:, i]
+                cur_gt_boxes[:, 0:3] = annos['locations'].reshape(
+                    num_obj, -1)[:, 3*i:3*(i+1)]
+                cur_gt_boxes[:, -
+                             1] = annos['rotations_y'].reshape(num_obj, -1)[:, i]
                 point_indices += roiaware_pool3d_utils.points_in_boxes_cpu(
                     torch.from_numpy(points[:, 0:3]), torch.from_numpy(cur_gt_boxes)).numpy()  # (nboxes, npoints)
 
             for i in range(num_obj):
                 [scene_name, _, frame] = sample_idx.split('/')
-                filename = '%s_%s_%s_%d.bin' % (scene_name, frame[:-4], names[i], i)
+                filename = '%s_%s_%s_%d.bin' % (
+                    scene_name, frame[:-4], names[i], i)
                 filepath = database_save_path / filename
                 gt_points = points[point_indices[i] > 0]
                 num_points_in_gt = gt_points.shape[0]
                 if num_points_in_gt <= 0:
-                    print('num points in {} is zero, skip this target!'.format(filename[0:-4]))
+                    print('num points in {} is zero, skip this target!'.format(
+                        filename[0:-4]))
                     continue
 
                 gt_points[:, :3] -= gt_boxes[i, :3]
@@ -211,12 +242,13 @@ class PlusAIMultiframeDataset(DatasetTemplate):
                     gt_points.tofile(f)
 
                 if (used_classes is None) or names[i] in used_classes:
-                    db_path = str(filepath.relative_to(self.root_path))  # gt_database/xxxxx.bin
+                    # gt_database/xxxxx.bin
+                    db_path = str(filepath.relative_to(self.root_path))
                     db_info = {'name': names[i], 'path': db_path, 'image_idx': sample_idx, 'gt_idx': i,
                                'box3d_lidar': gt_boxes[i], 'num_points_in_gt': num_points_in_gt,
                                'difficulty': difficulty[i], 'bbox': bbox[i], 'score': annos['score'][i],
                                'locations': annos['locations'][i], 'rotations_y': annos['rotations_y'][i]}
-                            #    'gt_boxes_enlarged': annos['gt_boxes_enlarged'][i]}
+                    #    'gt_boxes_enlarged': annos['gt_boxes_enlarged'][i]}
                     if names[i] in all_db_infos:
                         all_db_infos[names[i]].append(db_info)
                     else:
@@ -261,11 +293,13 @@ class PlusAIMultiframeDataset(DatasetTemplate):
             if pred_scores.shape[0] == 0:
                 return pred_dict
 
-            pred_boxes_camera = box_utils.boxes3d_lidar_to_kitti_camera(pred_boxes)
+            pred_boxes_camera = box_utils.boxes3d_lidar_to_kitti_camera(
+                pred_boxes)
             pred_boxes_img = np.ones((pred_boxes_camera.shape[0], 4))
 
             pred_dict['name'] = np.array(class_names)[pred_labels - 1]
-            pred_dict['alpha'] = -np.arctan2(-pred_boxes[:, 1], pred_boxes[:, 0]) + pred_boxes_camera[:, 6]
+            pred_dict['alpha'] = -np.arctan2(-pred_boxes[:, 1],
+                                             pred_boxes[:, 0]) + pred_boxes_camera[:, 6]
             pred_dict['bbox'] = pred_boxes_img
             pred_dict['dimensions'] = pred_boxes[:, 3:6]
             pred_dict['location'] = pred_boxes[:, 0:3]
@@ -307,8 +341,10 @@ class PlusAIMultiframeDataset(DatasetTemplate):
         from ..kitti.kitti_object_eval_python import eval as kitti_eval
 
         eval_det_annos = copy.deepcopy(det_annos)
-        eval_gt_annos = [copy.deepcopy(info['annos']) for info in self.plusai_infos]
-        ap_result_str, ap_dict = kitti_eval.get_official_eval_result(eval_gt_annos, eval_det_annos, class_names)
+        eval_gt_annos = [copy.deepcopy(info['annos'])
+                         for info in self.plusai_infos]
+        ap_result_str, ap_dict = kitti_eval.get_official_eval_result(
+            eval_gt_annos, eval_det_annos, class_names)
 
         return ap_result_str, ap_dict
 
@@ -348,7 +384,8 @@ class PlusAIMultiframeDataset(DatasetTemplate):
                     'rotations_y': np.array([], dtype=np.float32).reshape(0, 3)
                 })
             else:
-                annos = common_utils.drop_info_with_name(annos, name='DontCare')
+                annos = common_utils.drop_info_with_name(
+                    annos, name='DontCare')
                 # loc, dims, rots = annos['location'], annos['dimensions'], annos['rotation_y']
                 # gt_names = annos['name']
                 # gt_boxes_lidar = np.concatenate([loc, dims, rots[..., np.newaxis]], axis=1).astype(np.float32)
@@ -367,7 +404,8 @@ class PlusAIMultiframeDataset(DatasetTemplate):
 
 
 def create_plusai_infos(dataset_cfg, class_names, data_path, save_path, workers=4):
-    dataset = PlusAIMultiframeDataset(dataset_cfg=dataset_cfg, class_names=class_names, root_path=data_path, training=False)
+    dataset = PlusAIMultiframeDataset(
+        dataset_cfg=dataset_cfg, class_names=class_names, root_path=data_path, training=False)
     train_split, val_split = 'train', 'val'
 
     train_filename = save_path / ('plusai_infos_%s.pkl' % train_split)
@@ -378,13 +416,15 @@ def create_plusai_infos(dataset_cfg, class_names, data_path, save_path, workers=
     print('---------------Start to generate data infos---------------')
 
     dataset.set_split(train_split)
-    plusai_infos_train = dataset.get_infos(num_workers=workers, has_label=True, count_inside_pts=True)
+    plusai_infos_train = dataset.get_infos(
+        num_workers=workers, has_label=True, count_inside_pts=True)
     with open(train_filename, 'wb') as f:
         pickle.dump(plusai_infos_train, f)
     print('PlusAI info train file is saved to %s' % train_filename)
 
     dataset.set_split(val_split)
-    plusai_infos_val = dataset.get_infos(num_workers=workers, has_label=True, count_inside_pts=True)
+    plusai_infos_val = dataset.get_infos(
+        num_workers=workers, has_label=True, count_inside_pts=True)
     with open(val_filename, 'wb') as f:
         pickle.dump(plusai_infos_val, f)
     print('PlusAI info val file is saved to %s' % val_filename)
@@ -404,6 +444,7 @@ def create_plusai_infos(dataset_cfg, class_names, data_path, save_path, workers=
     dataset.create_groundtruth_database(train_filename, split=train_split)
 
     print('---------------Data preparation Done---------------')
+
 
 def check_lidar_data(pointcloud_path):
     import os
@@ -426,6 +467,7 @@ def check_lidar_data(pointcloud_path):
                              )
         mayavi.mlab.show()
 
+
 def visualize_mot_data(data_path):
     import os
     from pcdet.utils.data_viz import plot_gt_boxes
@@ -438,8 +480,10 @@ def visualize_mot_data(data_path):
         with open(label_file, 'rb') as f:
             label = pickle.load(f)
 
-        gt_boxes = np.array([np.concatenate([obj[0]['location'], obj[0]['size'], [obj[0]['heading']]]) for obj in label['obstacles']])
+        gt_boxes = np.array([np.concatenate([obj[0]['location'], obj[0]['size'], [
+                            obj[0]['heading']]]) for obj in label['obstacles']])
         plot_gt_boxes(point_cloud, gt_boxes, bev_range, name=frame[0:-4])
+
 
 if __name__ == '__main__':
     import sys
@@ -448,14 +492,15 @@ if __name__ == '__main__':
     from easydict import EasyDict
     if sys.argv.__len__() > 1 and sys.argv[1] == 'create_plusai_infos':
         dataset_cfg = EasyDict(yaml.load(open(sys.argv[2])))
-        ROOT_DIR = (Path(__file__).resolve().parent / '../../../').resolve()
+        ROOT_DIR = Path('/home/tianpei.lin/')
         create_plusai_infos(
             dataset_cfg=dataset_cfg,
             class_names=['Car', 'Truck'],
-            data_path=ROOT_DIR / 'data' / 'plusai' / 'multiframe',
-            save_path=ROOT_DIR / 'data' / 'plusai' / 'multiframe'
+            data_path=ROOT_DIR / 'data' / 'train' / 'multiframe',
+            save_path=ROOT_DIR / 'data' / 'train' / 'multiframe'
         )
     elif sys.argv.__len__() > 1 and sys.argv[1] == 'check_lidar_data':
         ROOT_DIR = (Path(__file__).resolve().parent / '../../../').resolve()
-        check_lidar_data(ROOT_DIR / 'data' / 'plusai' / 'multiframe' / 'gt_database')
+        check_lidar_data(ROOT_DIR / 'data' / 'plusai' /
+                         'multiframe' / 'gt_database')
         # visualize_mot_data('/media/jingsen/data/Dataset/plusai/')

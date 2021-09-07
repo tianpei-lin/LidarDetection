@@ -50,7 +50,7 @@ def get_best_pose(timestamp, poses):
     before_i = after_i - 1
     after_time = timestamps[after_i]
     before_time = timestamps[before_i]
-    if after_time - before_time >= 0.02:
+    if after_time - before_time >= 0.06:
       print("warning, hole of size", after_time - before_time)
 
   return interpolate_pose(poses[before_i], poses[after_i], before_time, after_time, timestamp)

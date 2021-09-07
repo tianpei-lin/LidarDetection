@@ -1,13 +1,22 @@
 #!/bin/bash
 
 labels=(
-20210508T162630_paccar-k002dc_13_0to20.db
-20210416T135625_paccar-k002dc_2_40to60.db
-20210416T130638_paccar-k002dc_4_200to220.db
+20210414T181240_paccar-k002dc_12_0to22.bag
+20210414T181240_paccar-k002dc_12_37to48.bag
+20210414T181240_paccar-k002dc_1_50to81.bag
+20210414T181240_paccar-k002dc_17_37to53.bag
+20210414T181240_paccar-k002dc_17_4to31.bag
+20210414T181240_paccar-k002dc_19_73to92.bag
+20210414T181240_paccar-k002dc_19_95to113.bag
+20210414T181240_paccar-k002dc_2_40to51.bag
+20210414T181240_paccar-k002dc_3_0to33.bag
+20210414T181240_paccar-k002dc_4_100to113.bag
+20210414T181240_paccar-k002dc_5_0to32.bag
+20210414T181240_paccar-k002dc_8_79to111.bag
 )
 
-bags_path="/home/tianpei.lin/data/train/bag/"
-result_path="/home/tianpei.lin/data/train/prelabel/"
+bags_path="/home/tianpei.lin/data/bag/"
+result_path="/home/tianpei.lin/data/prelabel/"
 
 for bag in ${labels[*]}
 do
@@ -26,6 +35,6 @@ done
 
 python inference_bag2json.py \
   --cfg_file cfgs/ouster_models/pv_rcnn_multiframe.yaml \
-  --ckpt /home/tianpei.lin/checkpoints/ouster_models/pv_rcnn_multiframe/checkpoint_epoch_80.pth \
+  --ckpt /home/tianpei.lin/workspace/LidarDetection/output/ouster_models/pv_rcnn_multiframe/default/ckpt/checkpoint_epoch_80.pth \
   --bag_file ${bags_path} \
   --save_path ${result_path}
