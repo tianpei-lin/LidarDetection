@@ -58,7 +58,7 @@ def parse_config():
     parser.add_argument(
         '--save_to_file', action='store_true', default=False, help='')
     parser.add_argument('--root_path', type=str,
-                        default='/home/tianpei.lin/data/train/multiframe/', help='root path for train dataset')
+                        default='/old_home/archive/tianpei/train/multiframe/', help='root path for train dataset')
 
     args = parser.parse_args()
 
@@ -107,6 +107,8 @@ def main():
 
     # log to file
     logger.info('**********************Start logging**********************')
+    logger.info("Output dir: %s" % output_dir)
+    logger.info("Batch size: %d" % args.batch_size)
     gpu_list = os.environ['CUDA_VISIBLE_DEVICES'] if 'CUDA_VISIBLE_DEVICES' in os.environ.keys(
     ) else 'ALL'
     logger.info('CUDA_VISIBLE_DEVICES=%s' % gpu_list)
@@ -145,6 +147,7 @@ def main():
 
     # load checkpoint if it is possible
     start_epoch = it = 0
+    print("start_epoch: %d" % start_epoch)
     last_epoch = -1
     if args.pretrained_model is not None:
         model.load_params_from_file(
@@ -175,8 +178,8 @@ def main():
     )
 
     # -----------------------start training---------------------------
-    logger.info('**********************Start training %s/%s(%s)**********************'
-                % (cfg.EXP_GROUP_PATH, cfg.TAG, args.extra_tag))
+    logger.info('**********************Start training %s/%s(%s %d epoches)**********************'
+                % (cfg.EXP_GROUP_PATH, cfg.TAG, args.extra_tag, len(train_loader)))
     train_model(
         model,
         optimizer,
@@ -213,6 +216,9 @@ def main():
     eval_output_dir.mkdir(parents=True, exist_ok=True)
     # Only evaluate the last 10 epochs
     args.start_epoch = max(args.epochs - 10, 0)
+
+    print("ckpt_dir: %s" % ckpt_dir)
+    print("eval_output_dir: %s" % eval_output_dir)
 
     repeat_eval_ckpt(
         model.module if dist_train else model,

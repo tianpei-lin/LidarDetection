@@ -1,7 +1,9 @@
 DATASET: 'PlusAIMultiframeDataset'
 DATA_PATH: '../data/plusai/multiframe'
 
-POINT_CLOUD_RANGE: [-48, -16, -2, 152, 16, 6]
+#POINT_CLOUD_RANGE: [-104, -15.36, -2, 152, 15.36, 6]
+POINT_CLOUD_RANGE: [-104, -30.72, -2, 152, 30.72, 6]
+#POINT_CLOUD_RANGE: [2, -15.36, -2, 258, 15.36, 6]
 
 DATA_SPLIT: {
     'train': train,

@@ -50,6 +50,18 @@ class PlusAIMultiframeDataset(DatasetTemplate):
                 plusai_infos.extend(infos)
         self.plusai_infos.extend(plusai_infos)
 
+        if mode == "test":
+            print("--------------test info--------------")
+            empty_num = 0
+            for i in infos:
+                if not i["annos"]:
+                    print("image:", i["image"])
+                    print("calib:", i["calib"])
+                    print("point_cloud:", i["point_cloud"])
+                    print("annos:", i["annos"])
+                    empty_num += 1
+            print("empty_num: %d" % empty_num)
+
         if self.logger is not None:
             self.logger.info(
                 'Total samples for PlusAI dataset: %d' % (len(plusai_infos)))
@@ -343,6 +355,18 @@ class PlusAIMultiframeDataset(DatasetTemplate):
         eval_det_annos = copy.deepcopy(det_annos)
         eval_gt_annos = [copy.deepcopy(info['annos'])
                          for info in self.plusai_infos]
+
+        # remove some empty annos in gt
+        valid_index = []
+        index = 0
+        for anno in eval_gt_annos:
+            if anno:
+                valid_index.append(index)
+            index += 1
+
+        eval_gt_annos = [eval_gt_annos[index] for index in valid_index]
+        eval_det_annos = [eval_det_annos[index] for index in valid_index]
+
         ap_result_str, ap_dict = kitti_eval.get_official_eval_result(
             eval_gt_annos, eval_det_annos, class_names)
 
@@ -492,12 +516,12 @@ if __name__ == '__main__':
     from easydict import EasyDict
     if sys.argv.__len__() > 1 and sys.argv[1] == 'create_plusai_infos':
         dataset_cfg = EasyDict(yaml.load(open(sys.argv[2])))
-        ROOT_DIR = Path('/home/tianpei.lin/')
+        ROOT_DIR = Path('/old_home/archive/tianpei/')
         create_plusai_infos(
             dataset_cfg=dataset_cfg,
             class_names=['Car', 'Truck'],
-            data_path=ROOT_DIR / 'data' / 'train' / 'multiframe',
-            save_path=ROOT_DIR / 'data' / 'train' / 'multiframe'
+            data_path=ROOT_DIR / 'train' / 'multiframe',
+            save_path=ROOT_DIR / 'train' / 'multiframe'
         )
     elif sys.argv.__len__() > 1 and sys.argv[1] == 'check_lidar_data':
         ROOT_DIR = (Path(__file__).resolve().parent / '../../../').resolve()

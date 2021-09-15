@@ -12,7 +12,8 @@ def train_one_epoch(model, optimizer, train_loader, model_func, lr_scheduler, ac
         dataloader_iter = iter(train_loader)
 
     if rank == 0:
-        pbar = tqdm.tqdm(total=total_it_each_epoch, leave=leave_pbar, desc='train', dynamic_ncols=True)
+        pbar = tqdm.tqdm(total=total_it_each_epoch,
+                         leave=leave_pbar, desc='train', dynamic_ncols=True)
 
     for cur_it in range(total_it_each_epoch):
         try:
@@ -30,7 +31,8 @@ def train_one_epoch(model, optimizer, train_loader, model_func, lr_scheduler, ac
             cur_lr = optimizer.param_groups[0]['lr']
 
         if tb_log is not None:
-            tb_log.add_scalar('meta_data/learning_rate', cur_lr, accumulated_iter)
+            tb_log.add_scalar('meta_data/learning_rate',
+                              cur_lr, accumulated_iter)
 
         model.train()
         optimizer.zero_grad()
@@ -53,7 +55,8 @@ def train_one_epoch(model, optimizer, train_loader, model_func, lr_scheduler, ac
 
             if tb_log is not None:
                 tb_log.add_scalar('train/loss', loss, accumulated_iter)
-                tb_log.add_scalar('meta_data/learning_rate', cur_lr, accumulated_iter)
+                tb_log.add_scalar('meta_data/learning_rate',
+                                  cur_lr, accumulated_iter)
                 for key, val in tb_dict.items():
                     tb_log.add_scalar('train/' + key, val, accumulated_iter)
     if rank == 0:
@@ -66,11 +69,14 @@ def train_model(model, optimizer, train_loader, model_func, lr_scheduler, optim_
                 lr_warmup_scheduler=None, ckpt_save_interval=1, max_ckpt_save_num=50,
                 merge_all_iters_to_one_epoch=False):
     accumulated_iter = start_iter
+    print("start epoch: %d, total_epoches: %d" % (start_epoch, total_epochs))
     with tqdm.trange(start_epoch, total_epochs, desc='epochs', dynamic_ncols=True, leave=(rank == 0)) as tbar:
         total_it_each_epoch = len(train_loader)
         if merge_all_iters_to_one_epoch:
-            assert hasattr(train_loader.dataset, 'merge_all_iters_to_one_epoch')
-            train_loader.dataset.merge_all_iters_to_one_epoch(merge=True, epochs=total_epochs)
+            assert hasattr(train_loader.dataset,
+                           'merge_all_iters_to_one_epoch')
+            train_loader.dataset.merge_all_iters_to_one_epoch(
+                merge=True, epochs=total_epochs)
             total_it_each_epoch = len(train_loader) // max(total_epochs, 1)
 
         dataloader_iter = iter(train_loader)
@@ -97,14 +103,16 @@ def train_model(model, optimizer, train_loader, model_func, lr_scheduler, optim_
             trained_epoch = cur_epoch + 1
             if trained_epoch % ckpt_save_interval == 0 and rank == 0:
 
-                ckpt_list = glob.glob(str(ckpt_save_dir / 'checkpoint_epoch_*.pth'))
+                ckpt_list = glob.glob(
+                    str(ckpt_save_dir / 'checkpoint_epoch_*.pth'))
                 ckpt_list.sort(key=os.path.getmtime)
 
                 if ckpt_list.__len__() >= max_ckpt_save_num:
                     for cur_file_idx in range(0, len(ckpt_list) - max_ckpt_save_num + 1):
                         os.remove(ckpt_list[cur_file_idx])
 
-                ckpt_name = ckpt_save_dir / ('checkpoint_epoch_%d' % trained_epoch)
+                ckpt_name = ckpt_save_dir / \
+                    ('checkpoint_epoch_%d' % trained_epoch)
                 save_checkpoint(
                     checkpoint_state(model, optimizer, trained_epoch, accumulated_iter), filename=ckpt_name,
                 )

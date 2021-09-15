@@ -12,7 +12,7 @@ import numpy as np
 import sensor_msgs.point_cloud2 as pc2
 from pcdet.utils import common_utils
 from pcdet.datasets import DatasetTemplate
-from read_msg_from_fastbag import getOdomFromFastbag, getLidarPointsFromFastbag
+from .topic_proxy import call_python_version
 
 
 class UnifyLidar(object):
@@ -38,8 +38,9 @@ class UnifyLidar(object):
         self.frame_buffer = []
 
         if self.is_fastbag:
-            self.lidar_points = getLidarPointsFromFastbag(
-                bag, self.lidar_topic_list)
+            self.lidar_points = call_python_version("2.7", "read_msg_from_fastbag", "getLidarPointsFromFastbag", [
+                bag, self.lidar_topic_list])
+            print("Get lidar points from %s!" % bag)
             self.data_iter = iter(self.lidar_points)
         else:
             self.data_iter = bag.read_messages(topics=self.lidar_topic_list)
@@ -54,13 +55,15 @@ class UnifyLidar(object):
 
         if self.is_fastbag:
             idx = self.lidar_topic_list.index(topic)
-            timestamp = msg[0]
+            timestamp_nano = msg[0]
             point_cloud = np.array(msg[1], dtype=np.float32)
         else:
             idx = self.lidar_topic_list.index(topic)
-            timestamp = msg.header.stamp.to_sec()
+            timestamp_nano = msg.header.stamp.to_nsec()
             point_cloud = pc2.read_points(msg)
             point_cloud = np.array(list(point_cloud), dtype=np.float32)[:, :4]
+
+        timestamp = timestamp_nano / 1e9
 
         intensity = point_cloud[:, 3].copy()
         point_cloud[:, 3] = 1.
@@ -79,6 +82,7 @@ class UnifyLidar(object):
         if min_time_diff > self.time_diff_thresh:
             cur_frame = {
                 'timestamp': timestamp,
+                'timestamp_nano': timestamp_nano,
                 'is_ready': [False for _ in self.lidar_topic_list],
                 'pointcloud': [None for _ in self.lidar_topic_list]
             }
@@ -90,8 +94,9 @@ class UnifyLidar(object):
         cur_frame['pointcloud'][idx] = point_cloud
         if self.is_main_lidar[idx]:
             cur_frame.update({'timestamp': timestamp})
+            cur_frame.update({'timestamp_nano': timestamp_nano})
         if self.is_frame_ready(cur_frame):
-            return (cur_frame['timestamp'], np.vstack(cur_frame['pointcloud']))
+            return (cur_frame['timestamp'], cur_frame['timestamp_nano'], np.vstack(cur_frame['pointcloud']))
         else:
             return None
 
@@ -153,14 +158,16 @@ class BagMultiframeDatasetUnifyLidar(DatasetTemplate):
             self.fill_frame_list()
         elif str(bag_path).endswith('.db'):
             self.bag = str(bag_path)
-            odom_list = getOdomFromFastbag(
-                bag_path, dataset_cfg.BAG_INFO.ODOM_TOPIC)
+            odom_list = call_python_version("2.7", "read_msg_from_fastbag", "getOdomFromFastbag", [
+                                            str(bag_path), dataset_cfg.BAG_INFO.ODOM_TOPIC])
             odom_list = sorted(odom_list, key=lambda x: x[0])
 
-            self.timestamps = np.asarray(
-                [e[0] for e in odom_list], dtype=np.float64)
-            self.poses = np.asarray([e[1]
-                                    for e in odom_list], dtype=np.float64)
+            self.timestamps = [e[0] * 1e-9 for e in odom_list]
+            pos = np.array([e[1] for e in odom_list], dtype=np.float64)
+            quat = np.array([e[2] for e in odom_list], dtype=np.float64)
+            self.poses = []
+            for i in range(0, len(self.timestamps)):
+                self.poses.append((pos[i], quat[i]))
 
             if stack_frame_size > 0:
                 self.stack_frame_size = stack_frame_size
@@ -190,7 +197,7 @@ class BagMultiframeDatasetUnifyLidar(DatasetTemplate):
                 pose = common_utils.get_best_pose(
                     unified_lidar[0], (self.timestamps, self.poses))
                 self.frame_list.append(
-                    (unified_lidar[0], pose, unified_lidar[1]))
+                    (unified_lidar[0], pose, unified_lidar[2], unified_lidar[1]))
             else:
                 self.end_flag = True
                 break
@@ -200,7 +207,8 @@ class BagMultiframeDatasetUnifyLidar(DatasetTemplate):
 
     def __next__(self):
         if self.end_flag:
-            self.bag.close()
+            if str(self.bag_path).endswith('.bag'):
+                self.bag.close()
             raise StopIteration
 
         base_frame = self.frame_list[self.base_frame_index]
@@ -232,7 +240,7 @@ class BagMultiframeDatasetUnifyLidar(DatasetTemplate):
         self.frame_idx += 1
         if self.model_input:
             input_dict = self.prepare_data(data_dict=input_dict)
-        return base_frame[0], base_frame[1], input_dict
+        return base_frame[0], base_frame[1], input_dict, base_frame[3]
 
 
 class BagMultiframeDataset(DatasetTemplate):

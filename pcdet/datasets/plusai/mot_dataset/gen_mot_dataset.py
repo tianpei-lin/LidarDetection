@@ -43,7 +43,7 @@ def process_single_bag(bag_name, re_unified=True):
                              class_names=cfg.CLASS_NAMES,
                              stack_frame_size=1,
                              model_input=False)
-    for timestamp, pose, data_dict in test_set:
+    for timestamp, pose, data_dict, _ in test_set:
         timestamp_str = '{:.6f}'.format(timestamp)
         file_name = os.path.join(
             save_path, 'pointcloud', timestamp_str + '.bin')
@@ -407,7 +407,7 @@ if __name__ == '__main__':
                         default='/home/tianpei.lin/workspace/LidarDetection/tools/cfgs/ouster_models/pv_rcnn_multiframe.yaml')
     parser.add_argument('--visualize', action='store_true',
                         default=False, help='visualize the multi-frame point cloud')
-    parser.add_argument('--num_workers', default=6,
+    parser.add_argument('--num_workers', default=6, type=int,
                         help='num workers to process label data')
     args = parser.parse_args()
 

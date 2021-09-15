@@ -14,3 +14,4 @@ venv/
 output/
 pcdet/version.py
 tools/log_bag_inference.txt
+pcdet/datasets/plusai/log_bag_inference.txt
