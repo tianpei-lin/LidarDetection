@@ -1,0 +1,109 @@
+DATASET: 'PlusAIMultiframeDataset'
+DATA_PATH: '../data/plusai/multiframe'
+
+POINT_CLOUD_RANGE: [-104, -30.72, -2, 152, 30.72, 6]
+
+DATA_SPLIT: {
+    'train': train,
+    'test': val,
+}
+
+INFO_PATH: {
+    'train': [plusai_infos_train.pkl],
+    'test': [plusai_infos_val.pkl],
+}
+
+FOV_POINTS_ONLY: False
+
+
+DATA_AUGMENTOR:
+    DISABLE_AUG_LIST: ['placeholder']
+    AUG_CONFIG_LIST:
+        - NAME: gt_sampling
+          USE_ROAD_PLANE: True
+          DB_INFO_PATH:
+              - plusai_dbinfos_train.pkl
+          PREPARE: {
+             filter_by_min_points: ['Car:5', 'Truck:5', 'Bus:5'],
+             filter_by_difficulty: [-1],
+          }
+
+          SAMPLE_GROUPS: ['Car:5','Truck:3', 'Bus:3']
+          NUM_POINT_FEATURES: 5
+          DATABASE_WITH_FAKELIDAR: False
+          REMOVE_EXTRA_WIDTH: [0.0, 0.0]
+          LIMIT_WHOLE_SCENE: False
+
+        - NAME: random_world_flip
+          ALONG_AXIS_LIST: ['x']
+
+        - NAME: random_world_rotation
+          WORLD_ROT_ANGLE: [-0.02, 0.02]
+
+        - NAME: random_world_scaling
+          WORLD_SCALE_RANGE: [0.95, 1.05]
+
+
+POINT_FEATURE_ENCODING: {
+    encoding_type: absolute_coordinates_encoding,
+    used_feature_list: ['x', 'y', 'z', 'intensity', 'index'],
+    src_feature_list: ['x', 'y', 'z', 'intensity', 'index'],
+}
+
+
+DATA_PROCESSOR:
+    - NAME: mask_points_and_boxes_outside_range
+      REMOVE_OUTSIDE_BOXES: True
+
+    - NAME: sample_points
+      NUM_POINTS: {
+        'train': 120000,
+        'test': 120000
+      }
+      SAMPLE_DISTANCE_THRESH: 40.0
+
+    - NAME: shuffle_points
+      SHUFFLE_ENABLED: {
+        'train': True,
+        'test': False
+      }
+
+    - NAME: transform_points_to_voxels
+      VOXEL_SIZE: [0.16, 0.16, 0.2]
+      MAX_POINTS_PER_VOXEL: 8
+      MAX_NUMBER_OF_VOXELS: {
+        'train': 60000,
+        'test': 60000
+      }
+
+BAG_INFO:
+  CAR: j7-00010
+  CALIB_DB_PATH: "/home/tianpei.lin/workspace/common/sensor/calib_db/"
+  ODOM_TOPIC: '/localization/state_nav_msg'
+  UNIFIED_LIDAR_TOPIC: '/unified/lidar_points'
+  UNIFIED_LIDAR:
+      [ {
+          calib_name: "lidar",
+          calib_date: "20210729",
+          topic: "/livox/lidar/horizon_front",
+          is_main_lidar: true
+        },
+        #{
+        #  calib_name: "tele_lidar",
+        #  calib_date: "20210729",
+        #  topic: "/livox/lidar/tele_front",
+        #  is_main_lidar: false
+        #},
+        {
+          calib_name: "side_left_lidar",
+          calib_date: "20210729",
+          topic: "/os1_left/points",
+          is_main_lidar: false
+        },
+        {
+          calib_name: "side_right_lidar",
+          calib_date: "20210729",
+          topic: "/os1_right/points",
+          is_main_lidar: false
+        }
+      ]
