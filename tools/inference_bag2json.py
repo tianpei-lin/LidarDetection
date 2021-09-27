@@ -271,8 +271,8 @@ def inference_bag(model, bag_file):
                     'z': obj_loc[2]
                 },
                 'direction': {
-                    'x': 0,
-                    'y': 0,
+                    'x': math.cos(obj_rz),
+                    'y': math.sin(obj_rz),
                     'z': 0
                 },
                 'heading': obj_rz,
@@ -309,6 +309,41 @@ def inference_bag(model, bag_file):
             object['uuid'] = str(uuid.uuid4())
             objects.append(object)
     json_dict['objects'] = objects
+
+    # post-process: keep heading consistency
+    for object in json_dict['objects']:
+        last_direction = None
+        idx = 0
+        update_num = 0
+        for bound in object["bounds"]:
+            direction = np.array(
+                [bound["direction"]["x"], bound["direction"]["y"]])
+            if idx == 0:
+                last_direction = direction
+                idx += 1
+                continue
+            result = np.dot(last_direction, direction)
+            if result < 0:
+                bound["direction"]["x"] = -bound["direction"]["x"]
+                bound["direction"]["y"] = -bound["direction"]["y"]
+                direction = -direction
+                update_num += 1
+            last_direction = direction
+        if update_num >= 0.5 * len(object["bounds"]):
+            for bound in object["bounds"]:
+                bound["direction"]["x"] = -bound["direction"]["x"]
+                bound["direction"]["y"] = -bound["direction"]["y"]
+
+        for bound in object["bounds"]:
+            bound["heading"] = math.atan2(bound["direction"]["y"],
+                                          bound["direction"]["x"])
+            bound["center"]["x"] = bound["position"]["x"] * math.cos(
+                -bound["heading"]) - bound["position"]["y"] * math.sin(
+                    -bound["heading"])
+            bound["center"]["y"] = bound["position"]["x"] * math.sin(
+                -bound["heading"]) + bound["position"]["y"] * math.cos(
+                    -bound["heading"])
+
     json_txt = json.dumps(json_dict, indent=4)
     json_file_name = os.path.join(args.save_path,
                                   bag_file.split('/')[-1] + '.json')
