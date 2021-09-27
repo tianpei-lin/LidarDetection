@@ -1,7 +1,7 @@
 CLASS_NAMES: ['Car', 'Truck']
 
 DATA_CONFIG:
-    _BASE_CONFIG_: /home/tianpei.lin/workspace/LidarDetection/tools/cfgs/dataset_configs/plusai_paccar-k002dc.yaml
+    _BASE_CONFIG_: /home/tianpei.lin/workspace/LidarDetection/tools/cfgs/dataset_configs/plusai_j7-00010.yaml
     STACK_FRAME_SIZE: 3
     DATA_AUGMENTOR:
         DISABLE_AUG_LIST: ['placeholder']

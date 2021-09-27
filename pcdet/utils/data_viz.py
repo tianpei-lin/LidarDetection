@@ -22,10 +22,15 @@ def plot_feature_map(features, channel=None):
     cv2.imwrite("feature_map.jpg", feature_map)
     print("Feature map saved.")
 
+
 # plot function for multi-frame visualization
-def plot_multiframe_boxes(points, boxes, bev_range,
-                          gt_boxes=None, resolution=0.1,
-                          scores=None, labels=None,
+def plot_multiframe_boxes(points,
+                          boxes,
+                          bev_range,
+                          gt_boxes=None,
+                          resolution=0.1,
+                          scores=None,
+                          labels=None,
                           info=None):
     """ Visualize the boxes.
 
@@ -38,9 +43,12 @@ def plot_multiframe_boxes(points, boxes, bev_range,
 
     stack_frame_size = boxes.shape[1]
     # drop out out range points
-    points = points[(points[:, 0] > bev_range[0]) & (points[:, 0] < bev_range[3]) &
-                    (points[:, 1] > bev_range[1]) & (points[:, 1] < bev_range[4]) &
-                    (points[:, 2] > bev_range[2]) & (points[:, 2] < bev_range[5])]
+    points = points[(points[:, 0] > bev_range[0])
+                    & (points[:, 0] < bev_range[3]) &
+                    (points[:, 1] > bev_range[1]) &
+                    (points[:, 1] < bev_range[4]) &
+                    (points[:, 2] > bev_range[2]) &
+                    (points[:, 2] < bev_range[5])]
 
     # Initialize the plotting canvas
     pixels_x = int((bev_range[3] - bev_range[0]) / resolution + 1)
@@ -71,23 +79,38 @@ def plot_multiframe_boxes(points, boxes, bev_range,
                 box2d[:, 0] = bev_range[3] - box2d[:, 0]
                 box2d[:, 1] = bev_range[4] - box2d[:, 1]
                 # Plot box
-                cv2.line(canvas, (int(box2d[0, 1] / resolution), int(box2d[0, 0] / resolution)),
-                         (int(box2d[1, 1] / resolution), int(box2d[1, 0] / resolution)), cur_color, thickness)
-                cv2.line(canvas, (int(box2d[1, 1] / resolution), int(box2d[1, 0] / resolution)),
-                         (int(box2d[2, 1] / resolution), int(box2d[2, 0] / resolution)), cur_color, thickness)
-                cv2.line(canvas, (int(box2d[2, 1] / resolution), int(box2d[2, 0] / resolution)),
-                         (int(box2d[3, 1] / resolution), int(box2d[3, 0] / resolution)), cur_color, thickness)
-                cv2.line(canvas, (int(box2d[3, 1] / resolution), int(box2d[3, 0] / resolution)),
-                         (int(box2d[0, 1] / resolution), int(box2d[0, 0] / resolution)), cur_color, thickness)
+                cv2.line(canvas, (int(
+                    box2d[0, 1] / resolution), int(box2d[0, 0] / resolution)),
+                         (int(box2d[1, 1] / resolution),
+                          int(box2d[1, 0] / resolution)), cur_color, thickness)
+                cv2.line(canvas, (int(
+                    box2d[1, 1] / resolution), int(box2d[1, 0] / resolution)),
+                         (int(box2d[2, 1] / resolution),
+                          int(box2d[2, 0] / resolution)), cur_color, thickness)
+                cv2.line(canvas, (int(
+                    box2d[2, 1] / resolution), int(box2d[2, 0] / resolution)),
+                         (int(box2d[3, 1] / resolution),
+                          int(box2d[3, 0] / resolution)), cur_color, thickness)
+                cv2.line(canvas, (int(
+                    box2d[3, 1] / resolution), int(box2d[3, 0] / resolution)),
+                         (int(box2d[0, 1] / resolution),
+                          int(box2d[0, 0] / resolution)), cur_color, thickness)
                 # Plot heading
                 heading_points = rot_line_90(box2d[0], box2d[1])
-                cv2.line(canvas, (int(heading_points[0, 1] / resolution), int(heading_points[0, 0] / resolution)),
-                         (int(heading_points[1, 1] / resolution), int(heading_points[1, 0] / resolution)), cur_color, thickness)
+                cv2.line(canvas, (int(heading_points[0, 1] / resolution),
+                                  int(heading_points[0, 0] / resolution)),
+                         (int(heading_points[1, 1] / resolution),
+                          int(heading_points[1, 0] / resolution)), cur_color,
+                         thickness)
                 if scores is not None and labels is not None and idx == stack_frame_size // 2:
-                    cv2.putText(canvas, str(scores[i]) + ', ' + str(labels[i]),
-                                (int(box2d[0, 1] / resolution), int(box2d[0, 0] / resolution)),
+                    cv2.putText(canvas,
+                                str(scores[i]) + ', ' + str(labels[i]),
+                                (int(box2d[0, 1] / resolution),
+                                 int(box2d[0, 0] / resolution)),
                                 fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                                fontScale=0.5, color=cur_color, thickness=2)
+                                fontScale=0.5,
+                                color=cur_color,
+                                thickness=2)
 
     # Plot the detect boxes
     if boxes is not None:
@@ -95,18 +118,26 @@ def plot_multiframe_boxes(points, boxes, bev_range,
         plot_boxes(boxes, dt_colors, scores, labels, 1)
 
     # Plot the gt boxes
-    gt_colors = [[128, 0, 0], [0, 128, 0], [0, 0, 128]]
+    gt_colors = [[10, 10, 10], [255, 255, 255], [10, 10, 10]]
     if gt_boxes is not None:
-        plot_boxes(gt_boxes, gt_colors, None, None, 1)
+        plot_boxes(gt_boxes, gt_colors, None, None, 2)
 
     if info is not None:
-        cv2.putText(canvas, info, (10, 35), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                    fontScale=0.6, color=gt_colors[1], thickness=1)
+        cv2.putText(canvas,
+                    info, (10, 35),
+                    fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                    fontScale=0.6,
+                    color=gt_colors[1],
+                    thickness=1)
 
     return canvas
 
 
-def plot_gt_boxes(points, gt_boxes, bev_range, name=None, ret=False,
+def plot_gt_boxes(points,
+                  gt_boxes,
+                  bev_range,
+                  name=None,
+                  ret=False,
                   resolution=0.1):
     """ Visualize the ground truth boxes.
     :param points: lidar points, [N, 3]
@@ -117,10 +148,13 @@ def plot_gt_boxes(points, gt_boxes, bev_range, name=None, ret=False,
 
     # Configure the resolution
     steps = resolution
-    
-    points = points[(points[:, 0] > bev_range[0]) & (points[:, 0] < bev_range[3]) &
-                    (points[:, 1] > bev_range[1]) & (points[:, 1] < bev_range[4]) &
-                    (points[:, 2] > bev_range[2]) & (points[:, 2] < bev_range[5])]
+
+    points = points[(points[:, 0] > bev_range[0])
+                    & (points[:, 0] < bev_range[3]) &
+                    (points[:, 1] > bev_range[1]) &
+                    (points[:, 1] < bev_range[4]) &
+                    (points[:, 2] > bev_range[2]) &
+                    (points[:, 2] < bev_range[5])]
     # Initialize the plotting canvas
     pixels_x = int((bev_range[3] - bev_range[0]) / steps) + 1
     pixels_y = int((bev_range[4] - bev_range[1]) / steps) + 1
@@ -158,25 +192,35 @@ def plot_gt_boxes(points, gt_boxes, bev_range, name=None, ret=False,
         box2d[:, 1] -= bev_range[1]
         # Plot box
         cv2.line(canvas, (int(box2d[0, 1] / steps), int(box2d[0, 0] / steps)),
-                 (int(box2d[1, 1] / steps), int(box2d[1, 0] / steps)), gt_color, 3)
+                 (int(box2d[1, 1] / steps), int(box2d[1, 0] / steps)),
+                 gt_color, 3)
         cv2.line(canvas, (int(box2d[1, 1] / steps), int(box2d[1, 0] / steps)),
-                 (int(box2d[2, 1] / steps), int(box2d[2, 0] / steps)), gt_color, 3)
+                 (int(box2d[2, 1] / steps), int(box2d[2, 0] / steps)),
+                 gt_color, 3)
         cv2.line(canvas, (int(box2d[2, 1] / steps), int(box2d[2, 0] / steps)),
-                 (int(box2d[3, 1] / steps), int(box2d[3, 0] / steps)), gt_color, 3)
+                 (int(box2d[3, 1] / steps), int(box2d[3, 0] / steps)),
+                 gt_color, 3)
         cv2.line(canvas, (int(box2d[3, 1] / steps), int(box2d[3, 0] / steps)),
-                 (int(box2d[0, 1] / steps), int(box2d[0, 0] / steps)), gt_color, 3)
+                 (int(box2d[0, 1] / steps), int(box2d[0, 0] / steps)),
+                 gt_color, 3)
         # Plot heading
         heading_points = rot_line_90(box2d[0], box2d[1])
-        cv2.line(canvas, (int(heading_points[0, 1] / steps), int(heading_points[0, 0] / steps)),
-                 (int(heading_points[1, 1] / steps), int(heading_points[1, 0] / steps)), gt_color, 3)
+        cv2.line(canvas, (int(
+            heading_points[0, 1] / steps), int(heading_points[0, 0] / steps)),
+                 (int(heading_points[1, 1] / steps),
+                  int(heading_points[1, 0] / steps)), gt_color, 3)
 
     # Rotate the canvas to correct direction
     # canvas = cv2.rotate(canvas, cv2.cv2.ROTATE_90_CLOCKWISE)
     canvas = cv2.flip(canvas, 0)
     canvas = cv2.flip(canvas, 1)
 
-    cv2.putText(canvas, "Green: Ground Truth", (10, 35), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                fontScale=0.6, color=gt_color, thickness=1)
+    cv2.putText(canvas,
+                "Green: Ground Truth", (10, 35),
+                fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                fontScale=0.6,
+                color=gt_color,
+                thickness=1)
 
     if ret:
         return canvas
@@ -217,17 +261,23 @@ def plot_gt_det_cmp(points, gt_boxes, det_boxes, bev_range, name=None):
         box2d[:, 1] -= bev_range[1]
         # Plot box
         cv2.line(canvas, (int(box2d[0, 1] / steps), int(box2d[0, 0] / steps)),
-                 (int(box2d[1, 1] / steps), int(box2d[1, 0] / steps)), gt_color, 3)
+                 (int(box2d[1, 1] / steps), int(box2d[1, 0] / steps)),
+                 gt_color, 3)
         cv2.line(canvas, (int(box2d[1, 1] / steps), int(box2d[1, 0] / steps)),
-                 (int(box2d[2, 1] / steps), int(box2d[2, 0] / steps)), gt_color, 3)
+                 (int(box2d[2, 1] / steps), int(box2d[2, 0] / steps)),
+                 gt_color, 3)
         cv2.line(canvas, (int(box2d[2, 1] / steps), int(box2d[2, 0] / steps)),
-                 (int(box2d[3, 1] / steps), int(box2d[3, 0] / steps)), gt_color, 3)
+                 (int(box2d[3, 1] / steps), int(box2d[3, 0] / steps)),
+                 gt_color, 3)
         cv2.line(canvas, (int(box2d[3, 1] / steps), int(box2d[3, 0] / steps)),
-                 (int(box2d[0, 1] / steps), int(box2d[0, 0] / steps)), gt_color, 3)
+                 (int(box2d[0, 1] / steps), int(box2d[0, 0] / steps)),
+                 gt_color, 3)
         # Plot heading
         heading_points = rot_line_90(box2d[0], box2d[1])
-        cv2.line(canvas, (int(heading_points[0, 1] / steps), int(heading_points[0, 0] / steps)),
-                 (int(heading_points[1, 1] / steps), int(heading_points[1, 0] / steps)), gt_color, 3)
+        cv2.line(canvas, (int(
+            heading_points[0, 1] / steps), int(heading_points[0, 0] / steps)),
+                 (int(heading_points[1, 1] / steps),
+                  int(heading_points[1, 0] / steps)), gt_color, 3)
 
     # Plot the det boxes
     det_color = (0, 0, 255)
@@ -237,26 +287,40 @@ def plot_gt_det_cmp(points, gt_boxes, det_boxes, bev_range, name=None):
         box2d[:, 1] -= bev_range[1]
         # Plot box
         cv2.line(canvas, (int(box2d[0, 1] / steps), int(box2d[0, 0] / steps)),
-                 (int(box2d[1, 1] / steps), int(box2d[1, 0] / steps)), det_color, 3)
+                 (int(box2d[1, 1] / steps), int(box2d[1, 0] / steps)),
+                 det_color, 3)
         cv2.line(canvas, (int(box2d[1, 1] / steps), int(box2d[1, 0] / steps)),
-                 (int(box2d[2, 1] / steps), int(box2d[2, 0] / steps)), det_color, 3)
+                 (int(box2d[2, 1] / steps), int(box2d[2, 0] / steps)),
+                 det_color, 3)
         cv2.line(canvas, (int(box2d[2, 1] / steps), int(box2d[2, 0] / steps)),
-                 (int(box2d[3, 1] / steps), int(box2d[3, 0] / steps)), det_color, 3)
+                 (int(box2d[3, 1] / steps), int(box2d[3, 0] / steps)),
+                 det_color, 3)
         cv2.line(canvas, (int(box2d[3, 1] / steps), int(box2d[3, 0] / steps)),
-                 (int(box2d[0, 1] / steps), int(box2d[0, 0] / steps)), det_color, 3)
+                 (int(box2d[0, 1] / steps), int(box2d[0, 0] / steps)),
+                 det_color, 3)
         # Plot heading
         heading_points = rot_line_90(box2d[0], box2d[1])
-        cv2.line(canvas, (int(heading_points[0, 1] / steps), int(heading_points[0, 0] / steps)),
-                 (int(heading_points[1, 1] / steps), int(heading_points[1, 0] / steps)), det_color, 3)
+        cv2.line(canvas, (int(
+            heading_points[0, 1] / steps), int(heading_points[0, 0] / steps)),
+                 (int(heading_points[1, 1] / steps),
+                  int(heading_points[1, 0] / steps)), det_color, 3)
 
     # Rotate the canvas to correct direction
     canvas = cv2.flip(canvas, 0)
     canvas = cv2.flip(canvas, 1)
 
-    cv2.putText(canvas, "Green: Ground Truth", (10, 35), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                fontScale=0.5, color=gt_color, thickness=1)
-    cv2.putText(canvas, "Red: Detection", (10, 75), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                fontScale=0.5, color=det_color, thickness=1)
+    cv2.putText(canvas,
+                "Green: Ground Truth", (10, 35),
+                fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                fontScale=0.5,
+                color=gt_color,
+                thickness=1)
+    cv2.putText(canvas,
+                "Red: Detection", (10, 75),
+                fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                fontScale=0.5,
+                color=det_color,
+                thickness=1)
 
     cv2.imwrite("leading_boxes_%s.jpg" % name, canvas)
     print("Image %s saved." % name)
@@ -271,8 +335,7 @@ def rotz(t):
 
     c = np.cos(t)
     s = np.sin(t)
-    return np.array([[c, -s],
-                     [s,  c]])
+    return np.array([[c, -s], [s, c]])
 
 
 def rot_line_90(point1, point2):
@@ -285,8 +348,10 @@ def rot_line_90(point1, point2):
 
     center_x = (point1[0] + point2[0]) / 2
     center_y = (point1[1] + point2[1]) / 2
-    rot_point1 = np.dot(rotz(np.pi / 2), [point1[0] - center_x, point1[1] - center_y])
-    rot_point2 = np.dot(rotz(np.pi / 2), [point2[0] - center_x, point2[1] - center_y])
+    rot_point1 = np.dot(rotz(np.pi / 2),
+                        [point1[0] - center_x, point1[1] - center_y])
+    rot_point2 = np.dot(rotz(np.pi / 2),
+                        [point2[0] - center_x, point2[1] - center_y])
     rot_point1 += [center_x, center_y]
     rot_point2 += [center_x, center_y]
 
@@ -331,12 +396,13 @@ if __name__ == "__main__":
     random_points = np.random.random((1000, 3)) * 50
     random_points[:, 1] -= 25.0
     gt_boxes = np.array([[10.0, 1.0, 0.0, 4.1, 1.7, 1.5, 0],
-                         [3.0, -5.0, 0.0, 3.8, 1.67, 1.4, np.pi/4],
-                         [20.0, 13.0, 0.0, 8.1, 2.7, 4.5, np.pi/2]])
+                         [3.0, -5.0, 0.0, 3.8, 1.67, 1.4, np.pi / 4],
+                         [20.0, 13.0, 0.0, 8.1, 2.7, 4.5, np.pi / 2]])
     plot_gt_boxes(random_points, gt_boxes, bv_range)
 
     # ================================================================
-    det_boxes = np.array([[10.2, 1.05, 0.0, 4.15, 1.68, 1.5, 0.01],
-                         [3.05, -5.04, 0.0, 3.84, 1.69, 1.4, np.pi / 4 - 0.04],
-                         [20.3, 13.2, 0.0, 8.3, 2.69, 4.5, np.pi / 2 + 0.08]])
+    det_boxes = np.array(
+        [[10.2, 1.05, 0.0, 4.15, 1.68, 1.5, 0.01],
+         [3.05, -5.04, 0.0, 3.84, 1.69, 1.4, np.pi / 4 - 0.04],
+         [20.3, 13.2, 0.0, 8.3, 2.69, 4.5, np.pi / 2 + 0.08]])
     plot_gt_det_cmp(random_points, gt_boxes, det_boxes, bv_range)

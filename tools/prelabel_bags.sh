@@ -1,7 +1,7 @@
 #!/bin/bash
 
 labels=(
-20210414T181240_paccar-k002dc_17_80to100.db
+20210906T144400_j7-00010_12_66to75.bag
 )
 
 bags_path="/home/tianpei.lin/data/bag/"
@@ -26,6 +26,6 @@ cd /home/tianpei.lin/workspace/LidarDetection/pcdet/datasets/plusai
 
 python /home/tianpei.lin/workspace/LidarDetection/tools/inference_bag2json.py \
   --cfg_file /home/tianpei.lin/workspace/LidarDetection/tools/cfgs/ouster_models/pv_rcnn_multiframe.yaml \
-  --ckpt /home/tianpei.lin/workspace/LidarDetection/output/ouster_models/pv_rcnn_multiframe/default/ckpt/checkpoint_epoch_80.pth \
+  --ckpt /home/tianpei.lin/workspace/LidarDetection/output/ouster_models/pv_rcnn_multiframe/default/ckpt/checkpoint_epoch_120.pth \
   --bag_file ${bags_path} \
   --save_path ${result_path}
